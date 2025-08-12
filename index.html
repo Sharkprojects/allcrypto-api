@@ -203,7 +203,11 @@
             this.reset();
         });
 
-        document.addEventListener('DOMContentLoaded', fetchUsers);
+        // Deixa a página carregar primeiro e depois busca os dados.
+        window.addEventListener('load', () => {
+            // Um pequeno delay para garantir que a interface foi desenhada.
+            setTimeout(fetchUsers, 100); 
+        });
     </script>
 </body>
 </html>

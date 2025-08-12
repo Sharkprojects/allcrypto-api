@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF--8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerenciador de Usuários</title>
     <style>
@@ -86,10 +86,14 @@
     </div>
 
     <script>
-        const API_URL = '/api/user-action';
+        // ====================================================================
+        //  URL DA SUA API PUBLICADA NA HEROKU
+        // ====================================================================
+        const API_BASE_URL = 'https://allcrypto-api-leandro-717169789a6e.herokuapp.com';
+        // ====================================================================
+
         const STATUS_MSG = document.getElementById('status-message');
 
-        // Função para mostrar mensagens de status
         function showStatus(message, isError = false) {
             STATUS_MSG.textContent = message;
             STATUS_MSG.className = `status ${isError ? 'error' : 'ok'}`;
@@ -97,10 +101,9 @@
             setTimeout(() => { STATUS_MSG.style.display = 'none'; }, 4000);
         }
 
-        // Função genérica para enviar ações para o backend
         async function postAction(payload) {
             try {
-                const response = await fetch(API_URL, {
+                const response = await fetch(`${API_BASE_URL}/api/user-action`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -110,16 +113,15 @@
                     throw new Error(result.message || 'Ocorreu um erro.');
                 }
                 showStatus(result.message);
-                fetchUsers(); // Atualiza a lista após uma ação bem-sucedida
+                fetchUsers();
             } catch (error) {
                 showStatus(error.message, true);
             }
         }
 
-        // Listar Usuários
         async function fetchUsers() {
             try {
-                const response = await fetch('/api/usuarios');
+                const response = await fetch(`${API_BASE_URL}/api/usuarios`);
                 const result = await response.json();
                 if (!response.ok) throw new Error(result.message);
 
@@ -157,11 +159,11 @@
                 `;
                 container.appendChild(table);
             } catch (error) {
-                showStatus(error.message, true);
+                showStatus('Erro ao carregar usuários: ' + error.message, true);
             }
         }
 
-        // Handlers dos formulários
+        // Os Handlers dos formulários não mudam
         document.getElementById('form-inserir').addEventListener('submit', function(e) {
             e.preventDefault();
             const username = document.getElementById('ins-username').value;
@@ -201,7 +203,6 @@
             this.reset();
         });
 
-        // Carregar a lista de usuários ao iniciar a página
         document.addEventListener('DOMContentLoaded', fetchUsers);
     </script>
 </body>

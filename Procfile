@@ -1,1 +1,1 @@
-web: allcryptodbmobile
+web: allcrypto-api

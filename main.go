@@ -10,6 +10,7 @@ import (
 	"os" // 1. IMPORTADO O PACOTE 'os'
 
 	_ "github.com/lib/pq"
+	"github.com/rs/cors"
 )
 
 //go:embed index.html
@@ -148,30 +149,38 @@ func userActionsHandler(db *sql.DB) http.HandlerFunc {
 
 // 2. FUNÇÃO 'main' AJUSTADA PARA A HEROKU
 func main() {
-	// A Heroku espera que a string de conexão esteja na variável de ambiente DATABASE_URL.
-	// Esta função agora lê essa variável para se conectar.
 	db, err := conectarBD()
 	if err != nil {
 		log.Fatalf("Erro fatal ao conectar ao banco de dados: %v", err)
 	}
 	defer db.Close()
 
-	// A API servirá a interface web (index.html) na rota principal.
-	http.Handle("/", http.FileServer(http.FS(content)))
+	// Cria um 'mux' (roteador) para registrar os handlers.
+	mux := http.NewServeMux()
 
-	// As rotas da API permanecem as mesmas.
-	http.HandleFunc("/api/usuarios", listarUsuariosHandler(db))
-	http.HandleFunc("/api/user-action", userActionsHandler(db))
+	mux.Handle("/", http.FileServer(http.FS(content)))
+	mux.HandleFunc("/api/usuarios", listarUsuariosHandler(db))
+	mux.HandleFunc("/api/user-action", userActionsHandler(db))
 
-	// 3. LER A PORTA FORNECIDA PELA HEROKU
-	// A Heroku define a porta em que a aplicação deve rodar através da variável de ambiente PORT.
+	// 2. CONFIGURAR O MIDDLEWARE DE CORS
+	// Permite requisições de qualquer origem, com os métodos e cabeçalhos mais comuns.
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"}, // Permite qualquer origem
+		AllowedMethods: []string{"GET", "POST", "OPTIONS"},
+		AllowedHeaders: []string{"Content-Type"},
+	})
+
+	// 3. ENVOLVER O ROTEADOR COM O MIDDLEWARE DE CORS
+	handler := c.Handler(mux)
+
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080" // Usamos 8080 como padrão para testes locais.
+		port = "8080"
 	}
 
-	log.Printf("Iniciando servidor na porta %s", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
+	log.Printf("Iniciando servidor na porta %s com CORS habilitado", port)
+	// 4. USAR O 'handler' COM CORS EM VEZ DO 'mux' DIRETAMENTE
+	if err := http.ListenAndServe(":"+port, handler); err != nil {
 		log.Fatalf("Erro ao iniciar o servidor: %v", err)
 	}
 }

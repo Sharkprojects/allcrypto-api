@@ -1,0 +1,22 @@
+Signature-Version: 1.0
+Created-By: 1.0 (Go)
+SHA1-Digest-Manifest: pcaMEe2ghHbuvJrF9ZjatLSpgTU=
+
+Name: classes.dex
+SHA1-Digest: ZZFwzqxJbs8Wsrsuyj8iKmUZWhs=
+
+Name: lib/armeabi-v7a/liballcryptodb.so
+SHA1-Digest: pM2rOA/hMd9BoDvKqeFLKeUwmWI=
+
+Name: lib/arm64-v8a/liballcryptodb.so
+SHA1-Digest: LpgO7Pq8T6creBADITD4WhqqX3c=
+
+Name: lib/x86/liballcryptodb.so
+SHA1-Digest: 0QsYXDca5i/Q5/RCOuWWbO6V4ks=
+
+Name: lib/x86_64/liballcryptodb.so
+SHA1-Digest: POFqlx5ntsNiqOANq/WtrslsCTY=
+
+Name: AndroidManifest.xml
+SHA1-Digest: EMh7iNSZB/C6EwEbv2SuXWDhllk=
+

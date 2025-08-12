@@ -1,0 +1,25 @@
+version: 2.11.1
+apkFileName: app.apk
+isFrameworkApk: false
+usesFramework:
+  ids:
+  - 1
+  tag: null
+sdkInfo:
+  minSdkVersion: 23
+packageInfo:
+  forcedPackageId: null
+  renameManifestPackage: null
+versionInfo:
+  versionCode: 1
+  versionName: 1.0
+sharedLibrary: false
+sparseResources: true
+compactEntries: true
+doNotCompress:
+- dex
+- so
+- AndroidManifest.xml
+- META-INF/CERT.RSA
+- META-INF/CERT.SF
+- META-INF/MANIFEST.MF

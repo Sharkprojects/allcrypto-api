@@ -1,0 +1,22 @@
+Manifest-Version: 1.0
+Dex-Location: classes.dex
+Created-By: 1.0 (Go)
+
+Name: classes.dex
+SHA1-Digest: jc/cJdh3h4O4t8OhfnCdcXzEz2E=
+
+Name: lib/armeabi-v7a/liballcryptodb.so
+SHA1-Digest: sSGp5Hjc5we0g+UUZKKahSWEZpg=
+
+Name: lib/arm64-v8a/liballcryptodb.so
+SHA1-Digest: KqqgbvJF3CwIofw9D9GfSWUgi6o=
+
+Name: lib/x86/liballcryptodb.so
+SHA1-Digest: n33UV9J1Q+1hZGFVHfSauyw37wA=
+
+Name: lib/x86_64/liballcryptodb.so
+SHA1-Digest: rHGG9eAMOYcmRtBDL5UARkWlVwA=
+
+Name: AndroidManifest.xml
+SHA1-Digest: lZU2p5h4/758AtHIVy2F0h+CZyc=
+

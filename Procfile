@@ -1,1 +1,1 @@
-web: allcrypto-api
+web: allcryptodb

@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os" // 1. IMPORTADO O PACOTE 'os'
+	"os"
 
 	_ "github.com/lib/pq"
 	"github.com/rs/cors"
@@ -15,8 +15,6 @@ import (
 
 //go:embed index.html
 var content embed.FS
-
-// --- As structs User, Response e as funções conectarBD, jsonResponse e todos os handlers permanecem EXATAMENTE IGUAIS ---
 
 type User struct {
 	ID          int64   `json:"id"`
@@ -34,7 +32,6 @@ type Response struct {
 }
 
 func conectarBD() (*sql.DB, error) {
-	// IMPORTANTE: Esta URL precisa ser a DATABASE_URL fornecida pelo painel da Heroku.
 	connStr := os.Getenv("DATABASE_URL")
 	if connStr == "" {
 		log.Fatal("Variável de ambiente DATABASE_URL não definida.")
@@ -84,6 +81,9 @@ func listarUsuariosHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
+// =====================================================================================
+//  INÍCIO DA ALTERAÇÃO: Função userActionsHandler com consultas case-insensitive
+// =====================================================================================
 func userActionsHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -100,23 +100,27 @@ func userActionsHandler(db *sql.DB) http.HandlerFunc {
 		var query string
 		var err error
 		var result sql.Result
+
+		// A cláusula WHERE foi modificada em todas as queries para usar LOWER()
+		// Isso garante que a busca por 'username' não diferencie maiúsculas de minúsculas.
 		switch action {
 		case "inserirUsuario":
 			password, _ := payload["password"].(string)
 			renewalDate, _ := payload["renewal_date"].(string)
+			// A inserção não precisa de alteração, pois cria um novo registro.
 			query = `INSERT INTO users (username, password, is_blocked, renewal_date, indicacao) VALUES ($1, $2, false, $3, 0)`
 			result, err = db.Exec(query, username, password, renewalDate)
 		case "atualizarSenha":
 			newPassword, _ := payload["new_password"].(string)
-			query = `UPDATE users SET password = $1 WHERE username = $2`
+			query = `UPDATE users SET password = $1 WHERE LOWER(username) = LOWER($2)`
 			result, err = db.Exec(query, newPassword, username)
 		case "bloquearUsuario":
 			isBlocked, _ := payload["is_blocked"].(bool)
-			query = `UPDATE users SET is_blocked = $1 WHERE username = $2`
+			query = `UPDATE users SET is_blocked = $1 WHERE LOWER(username) = LOWER($2)`
 			result, err = db.Exec(query, isBlocked, username)
 		case "atualizarRenovacao":
 			renewalDate, _ := payload["renewal_date"].(string)
-			query = `UPDATE users SET renewal_date = $1 WHERE username = $2`
+			query = `UPDATE users SET renewal_date = $1 WHERE LOWER(username) = LOWER($2)`
 			result, err = db.Exec(query, renewalDate, username)
 		case "atualizarIndicacao":
 			indicacao, ok := payload["indicacao"].(float64)
@@ -124,11 +128,11 @@ func userActionsHandler(db *sql.DB) http.HandlerFunc {
 				jsonResponse(w, http.StatusBadRequest, Response{Message: "Valor de indicação inválido"})
 				return
 			}
-			query = `UPDATE users SET indicacao = $1 WHERE username = $2`
+			query = `UPDATE users SET indicacao = $1 WHERE LOWER(username) = LOWER($2)`
 			result, err = db.Exec(query, int(indicacao), username)
 		case "atualizarIP":
 			novoIP, _ := payload["novo_ip"].(string)
-			query = `UPDATE users SET ip = $1 WHERE username = $2`
+			query = `UPDATE users SET ip = $1 WHERE LOWER(username) = LOWER($2)`
 			result, err = db.Exec(query, novoIP, username)
 		default:
 			jsonResponse(w, http.StatusBadRequest, Response{Message: "Ação desconhecida"})
@@ -146,8 +150,11 @@ func userActionsHandler(db *sql.DB) http.HandlerFunc {
 		jsonResponse(w, http.StatusOK, Response{Message: "Ação '" + action + "' executada com sucesso!"})
 	}
 }
+// =====================================================================================
+//  FIM DA ALTERAÇÃO
+// =====================================================================================
 
-// 2. FUNÇÃO 'main' AJUSTADA PARA A HEROKU
+
 func main() {
 	db, err := conectarBD()
 	if err != nil {
@@ -155,22 +162,18 @@ func main() {
 	}
 	defer db.Close()
 
-	// Cria um 'mux' (roteador) para registrar os handlers.
 	mux := http.NewServeMux()
 
 	mux.Handle("/", http.FileServer(http.FS(content)))
 	mux.HandleFunc("/api/usuarios", listarUsuariosHandler(db))
 	mux.HandleFunc("/api/user-action", userActionsHandler(db))
 
-	// 2. CONFIGURAR O MIDDLEWARE DE CORS
-	// Permite requisições de qualquer origem, com os métodos e cabeçalhos mais comuns.
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"*"}, // Permite qualquer origem
+		AllowedOrigins: []string{"*"},
 		AllowedMethods: []string{"GET", "POST", "OPTIONS"},
 		AllowedHeaders: []string{"Content-Type"},
 	})
 
-	// 3. ENVOLVER O ROTEADOR COM O MIDDLEWARE DE CORS
 	handler := c.Handler(mux)
 
 	port := os.Getenv("PORT")
@@ -179,7 +182,6 @@ func main() {
 	}
 
 	log.Printf("Iniciando servidor na porta %s com CORS habilitado", port)
-	// 4. USAR O 'handler' COM CORS EM VEZ DO 'mux' DIRETAMENTE
 	if err := http.ListenAndServe(":"+port, handler); err != nil {
 		log.Fatalf("Erro ao iniciar o servidor: %v", err)
 	}
